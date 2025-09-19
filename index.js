@@ -6,7 +6,6 @@ const cookieParser = require("cookie-parser");
 
 const app = express();
 
-// ⚠️ Render asigna el puerto en process.env.PORT
 const PORT = process.env.PORT || 3001;
 
 // Middlewares globales
@@ -35,7 +34,7 @@ app.use(
 
 // 🔹 Rutas de prueba
 app.get("/", (req, res) => {
-  res.send("✅ Backend funcionando en Render 🚀");
+  res.send("✅ Backend funcionando en ocean 🚀");
 });
 
   // 🔹 Verificar si hay sesión activa
