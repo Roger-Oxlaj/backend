@@ -19,7 +19,6 @@ app.use(
       if (!origin) return callback(null, true); // permite peticiones internas
 
       if (
-        origin.includes("localhost:3000") ||
         origin.endsWith(".ngrok-free.app") ||
         origin.includes("onrender.com") ||
         origin.includes("mapeo-proyecto2-tpaz.vercel.app")
