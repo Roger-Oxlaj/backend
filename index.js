@@ -35,8 +35,8 @@ app.get("/", (req, res) => {
   res.send("✅ Backend funcionando correctamente en ocean 🚀");
 });
   // 🔹 Verificar si hay sesión activa
-  app.get("/check-session", (req, res) => {
-    console.log("Cookies en /check-session:", req.cookies);
+  app.get("/api/check-session", (req, res) => {
+    console.log("Cookies en /api/check-session:", req.cookies);
     const token = req.cookies?.token;
     res.json({ loggedIn: !!token });
   });
