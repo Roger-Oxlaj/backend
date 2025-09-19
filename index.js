@@ -32,7 +32,7 @@ app.use(
 
 // 🔹 Rutas de prueba
 app.get("/", (req, res) => {
-  res.send("✅ Backend funcionando correctamente en ocean 🚀");
+  res.send("✅ Backend funcionando correctamente en ocean, te kero 🚀");
 });
   // 🔹 Verificar si hay sesión activa
   app.get("/check-session", (req, res) => {
