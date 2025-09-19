@@ -19,9 +19,10 @@ app.use(
       if (!origin) return callback(null, true); // permite peticiones internas
 
       if (
-        origin.includes("https://mapeo-proyecto2-7doa.vercel.app") || // tu frontend en vercel
-        origin.endsWith(".ngrok-free.app") || // pruebas con ngrok
-        origin.includes("onrender.com") // tu frontend desplegado
+        origin.includes("localhost:3000") ||
+        origin.endsWith(".ngrok-free.app") ||
+        origin.includes("onrender.com") ||
+        origin.includes("mapeo-proyecto2-tpaz.vercel.app")
       ) {
         callback(null, true);
       } else {
