@@ -19,7 +19,7 @@ app.use(
       if (!origin) return callback(null, true); // permite peticiones internas
 
       if (
-        origin.includes("localhost:3000") || // tu frontend en local
+        origin.includes("https://mapeo-proyecto2-7doa.vercel.app") || // tu frontend en vercel
         origin.endsWith(".ngrok-free.app") || // pruebas con ngrok
         origin.includes("onrender.com") // tu frontend desplegado
       ) {
