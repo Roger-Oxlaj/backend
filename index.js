@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3001;
 app.use(express.json());
 app.use(cookieParser());
 
-// Configuración de CORS
+// La configuración de CORS
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -34,7 +34,7 @@ app.use(
 
 // 🔹 Rutas de prueba
 app.get("/", (req, res) => {
-  res.send("✅ Backend funcionando en ocean 🚀");
+  res.send("✅ Backend funcionando correctamente en ocean 🚀");
 });
 
   // 🔹 Verificar si hay sesión activa
