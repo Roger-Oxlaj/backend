@@ -14,10 +14,8 @@ app.use(cookieParser());
 
 // La configuración de CORS
 app.use(
-  cors({
-    origin: (origin, callback) => {
+  cors({ origin: (origin, callback) => {
       if (!origin) return callback(null, true); // permite peticiones internas
-
       if (
         origin.endsWith(".ngrok-free.app") ||
         origin.includes("onrender.com") ||
@@ -36,14 +34,13 @@ app.use(
 app.get("/", (req, res) => {
   res.send("✅ Backend funcionando correctamente en ocean 🚀");
 });
-
   // 🔹 Verificar si hay sesión activa
   app.get("/check-session", (req, res) => {
     console.log("Cookies en /check-session:", req.cookies);
     const token = req.cookies?.token;
     res.json({ loggedIn: !!token });
   });
-
+ 
   // LOGIN USUARIO
   app.post("/login", async (req, res) => {
     const { Nombre, Contraseña } = req.body;
