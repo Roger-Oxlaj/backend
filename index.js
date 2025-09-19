@@ -68,10 +68,11 @@ app.get("/", (req, res) => {
       res.cookie("token", String(user.ID_Usuario), {
         httpOnly: true,
         maxAge: 3600000,
-        sameSite: "lax",
-        secure: false,
+        sameSite: "None",
+        secure: true,
         path: "/",
       });
+
 
       res.json({ message: "✅ Login exitoso", user });
     } catch (err) {
