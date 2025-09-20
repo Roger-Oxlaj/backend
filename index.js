@@ -38,8 +38,16 @@ app.get("/", (req, res) => {
   app.get("/check-session", (req, res) => {
     console.log("Cookies en /check-session:", req.cookies);
     const token = req.cookies?.token;
-    res.json({ loggedIn: !!token });
+    if (!token) {
+      return res.json({ loggedIn: false });
+    }
+    // ✅ Si quisieras devolver info del usuario:
+    res.json({
+      loggedIn: true,
+      userId: token
+    });
   });
+
  
   // LOGIN USUARIO
   app.post("/login", async (req, res) => {
