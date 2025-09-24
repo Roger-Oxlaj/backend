@@ -190,49 +190,56 @@ app.get("/", (req, res) => {
      CRUD DIRECCION
   ============================================================ */
   app.get("/direcciones", async (req, res) => {
-    try {
-      const result = await getConnection()
-        .request()
-        .query("SELECT * FROM Direccion");
-      res.json(result.recordset);
-    } catch (err) {
-      res.status(500).send(err.message);
-    }
-  });
+  try {
+    const result = await getConnection()
+      .request()
+      .query("SELECT * FROM Direccion"); // Ya devuelve los nuevos campos
+    res.json(result.recordset);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
 
-  app.post("/direcciones", async (req, res) => {
-    const { Calle, Ciudad, Departamento, Latitud, Longitud } = req.body;
-    try {
-      const result = await getConnection()
-        .request()
-        .input("Calle", Calle)
-        .input("Ciudad", Ciudad)
-        .input("Departamento", Departamento)
-        .input("Latitud", Latitud)
-        .input("Longitud", Longitud)
-        .query(`INSERT INTO Direccion (Calle, Ciudad, Departamento, Latitud, Longitud)
-              OUTPUT INSERTED.ID_Direccion VALUES (@Calle, @Ciudad, @Departamento, @Latitud, @Longitud)`);
+app.post("/direcciones", async (req, res) => {
+  const { Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa, FotoReferencia } = req.body;
 
-      res.status(201).json({ ID_Direccion: result.recordset[0].ID_Direccion });
-    } catch (err) {
-      res.status(500).send(err.message);
-    }
-  });
+  try {
+    const result = await getConnection()
+      .request()
+      .input("Calle", Calle)
+      .input("Ciudad", Ciudad)
+      .input("Departamento", Departamento)
+      .input("Latitud", Latitud)
+      .input("Longitud", Longitud)
+      .input("Zona", Zona || null)
+      .input("Avenida", Avenida || null)
+      .input("NumeroCasa", NumeroCasa) // obligatorio
+      .input("FotoReferencia", FotoReferencia || null)
+      .query(`INSERT INTO Direccion (Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa, FotoReferencia)
+              OUTPUT INSERTED.ID_Direccion 
+              VALUES (@Calle, @Ciudad, @Departamento, @Latitud, @Longitud, @Zona, @Avenida, @NumeroCasa, @FotoReferencia)`);
 
-  // Eliminar dirección
-  app.delete("/direcciones/:id", async (req, res) => {
-    const { id } = req.params;
-    try {
-      await getConnection()
-        .request()
-        .input("ID_Direccion", id)
-        .query("DELETE FROM Direccion WHERE ID_Direccion = @ID_Direccion");
+    res.status(201).json({ ID_Direccion: result.recordset[0].ID_Direccion });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
 
-      res.sendStatus(204); // No Content
-    } catch (err) {
-      res.status(500).send(err.message);
-    }
-  });
+// Eliminar dirección
+app.delete("/direcciones/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await getConnection()
+      .request()
+      .input("ID_Direccion", id)
+      .query("DELETE FROM Direccion WHERE ID_Direccion = @ID_Direccion");
+
+    res.sendStatus(204); // No Content
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 
   /* ============================================================
      CRUD EMBARAZADA
@@ -282,11 +289,12 @@ app.get("/", (req, res) => {
   });
 
   // Registrar embarazada con dirección (usa tu SP)
-  app.post("/embarazadas", async (req, res) => {
-    const { Nombre, Edad, Telefono, Calle, Ciudad, Departamento, Latitud, Longitud, } = req.body;
+  // Registrar embarazada con dirección (usa tu SP)
+app.post("/embarazadas", async (req, res) => {
+  const { Nombre, Edad, Telefono, Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa, FotoReferencia } = req.body;
 
-    try {
- const pool = await getConnection();
+  try {
+    const pool = await getConnection();
 
     // 1. Verificar si ya existe el teléfono
     const existe = await pool
@@ -297,27 +305,34 @@ app.get("/", (req, res) => {
     if (existe.recordset.length > 0) {
       return res.status(400).json({ error: "⚠ El número de teléfono ya está registrado" });
     }
-      const result = await getConnection()
-        .request()
-        .input("Nombre", Nombre)
-        .input("Edad", Edad)
-        .input("Telefono", Telefono)
-        .input("Calle", Calle)
-        .input("Ciudad", Ciudad)
-        .input("Departamento", Departamento)
-        .input("Latitud", Latitud || null)
-        .input("Longitud", Longitud || null)
-        .execute("sp_InsertarEmbarazadaConDireccion");
 
-      res.status(201).json({
-        message: "✅ Embarazada y dirección registradas correctamente",
-        data: result.recordset[0],
-      });
-    } catch (err) {
-      console.error("⚠ Error al registrar embarazada:", err);
-      res.status(500).send("⚠ Error al registrar embarazada: " + err.message);
-    }
-  });
+    // 2. Insertar usando SP
+    const result = await pool
+      .request()
+      .input("Nombre", Nombre)
+      .input("Edad", Edad)
+      .input("Telefono", Telefono)
+      .input("Calle", Calle)
+      .input("Ciudad", Ciudad)
+      .input("Departamento", Departamento)
+      .input("Latitud", Latitud || null)
+      .input("Longitud", Longitud || null)
+      .input("Zona", Zona || null)
+      .input("Avenida", Avenida || null)
+      .input("NumeroCasa", NumeroCasa) // obligatorio
+      .input("FotoReferencia", FotoReferencia || null)
+      .execute("sp_InsertarEmbarazadaConDireccion");
+
+    res.status(201).json({
+      message: "✅ Embarazada y dirección registradas correctamente",
+      data: result.recordset[0],
+    });
+  } catch (err) {
+    console.error("⚠ Error al registrar embarazada:", err);
+    res.status(500).send("⚠ Error al registrar embarazada: " + err.message);
+  }
+});
+
 
   /* ============================================================
      ACTUALIZAR EMBARAZADA
