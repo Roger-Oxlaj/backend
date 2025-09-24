@@ -293,11 +293,17 @@ app.delete("/direcciones/:id", async (req, res) => {
     const { Nombre, Edad, Telefono, Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa, FotoReferencia } = req.body;
 
      let fotoBuffer = null;
-    if (FotoReferencia) {
-      const base64Data = FotoReferencia.replace(/^data:image\/\w+;base64,/, "");
-      fotoBuffer = Buffer.from(base64Data, "base64");
-    }
-    
+
+      if (FotoReferencia && FotoReferencia.startsWith("data:image")) {
+        try {
+          // Quitar prefijo (sea png o jpg)
+          const base64Data = FotoReferencia.split(",")[1];
+          fotoBuffer = Buffer.from(base64Data, "base64");
+        } catch (e) {
+          console.error("⚠ Error al procesar la imagen:", e.message);
+        }
+      }
+
     try {
       const pool = await getConnection();
 
@@ -310,7 +316,8 @@ app.delete("/direcciones/:id", async (req, res) => {
       if (existe.recordset.length > 0) {
         return res.status(400).json({ error: "⚠ El número de teléfono ya está registrado" });
       }
-
+      console.log("FotoReferencia recibido:", FotoReferencia?.substring(0,50), "...");
+      console.log("Buffer generado:", fotoBuffer ? fotoBuffer.length + " bytes" : "null");
       // 2. Insertar usando SP
       const result = await getConnection()
         .request()
@@ -323,7 +330,7 @@ app.delete("/direcciones/:id", async (req, res) => {
         .input("Zona", Zona || null)
         .input("Avenida", Avenida || null)
         .input("NumeroCasa", NumeroCasa)
-        .input("FotoReferencia", sql.VarBinary(sql.MAX), fotoBuffer)
+        .input("FotoReferencia", sql.VarBinary(sql.MAX), fotoBuffer || null)
         .input("Latitud", Latitud || null)
         .input("Longitud", Longitud || null)
         .execute("sp_InsertarEmbarazadaConDireccion");
