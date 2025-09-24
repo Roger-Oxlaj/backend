@@ -201,7 +201,7 @@ app.get("/", (req, res) => {
 });
 
 app.post("/direcciones", async (req, res) => {
-  const { Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa, FotoReferencia } = req.body;
+  const { Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa } = req.body;
 
   try {
     const result = await getConnection()
@@ -214,10 +214,9 @@ app.post("/direcciones", async (req, res) => {
       .input("Zona", Zona || null)
       .input("Avenida", Avenida || null)
       .input("NumeroCasa", NumeroCasa) // obligatorio
-      .input("FotoReferencia", FotoReferencia || null)
-      .query(`INSERT INTO Direccion (Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa, FotoReferencia)
+      .query(`INSERT INTO Direccion (Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa)
               OUTPUT INSERTED.ID_Direccion 
-              VALUES (@Calle, @Ciudad, @Departamento, @Latitud, @Longitud, @Zona, @Avenida, @NumeroCasa, @FotoReferencia)`);
+              VALUES (@Calle, @Ciudad, @Departamento, @Latitud, @Longitud, @Zona, @Avenida, @NumeroCasa)`);
 
     res.status(201).json({ ID_Direccion: result.recordset[0].ID_Direccion });
   } catch (err) {
@@ -290,7 +289,7 @@ app.delete("/direcciones/:id", async (req, res) => {
 
   // Registrar embarazada con dirección (usa tu SP)
 app.post("/embarazadas", async (req, res) => {
-  const { Nombre, Edad, Telefono, Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa, FotoReferencia } = req.body;
+  const { Nombre, Edad, Telefono, Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa } = req.body;
 
   try {
     const pool = await getConnection();
@@ -319,7 +318,6 @@ app.post("/embarazadas", async (req, res) => {
       .input("Zona", Zona || null)
       .input("Avenida", Avenida || null)
       .input("NumeroCasa", NumeroCasa) // obligatorio
-      .input("FotoReferencia", FotoReferencia || null)
       .execute("sp_InsertarEmbarazadaConDireccion");
 
     res.status(201).json({
