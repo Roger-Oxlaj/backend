@@ -289,49 +289,54 @@ app.delete("/direcciones/:id", async (req, res) => {
   });
 
   // Registrar embarazada con dirección (usa tu SP)
-  // Registrar embarazada con dirección (usa tu SP)
-app.post("/embarazadas", async (req, res) => {
-  const { Nombre, Edad, Telefono, Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa, FotoReferencia } = req.body;
+  app.post("/embarazadas", async (req, res) => {
+    const { Nombre, Edad, Telefono, Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa, FotoReferencia } = req.body;
 
-  try {
-    const pool = await getConnection();
-
-    // 1. Verificar si ya existe el teléfono
-    const existe = await pool
-      .request()
-      .input("Telefono", Telefono)
-      .query("SELECT 1 FROM Embarazada WHERE Telefono = @Telefono");
-
-    if (existe.recordset.length > 0) {
-      return res.status(400).json({ error: "⚠ El número de teléfono ya está registrado" });
+     let fotoBuffer = null;
+    if (FotoReferencia) {
+      const base64Data = FotoReferencia.replace(/^data:image\/\w+;base64,/, "");
+      fotoBuffer = Buffer.from(base64Data, "base64");
     }
+    
+    try {
+      const pool = await getConnection();
 
-    // 2. Insertar usando SP
-    const result = await pool
-      .request()
-      .input("Nombre", Nombre)
-      .input("Edad", Edad)
-      .input("Telefono", Telefono)
-      .input("Calle", Calle)
-      .input("Ciudad", Ciudad)
-      .input("Departamento", Departamento)
-      .input("Latitud", Latitud || null)
-      .input("Longitud", Longitud || null)
-      .input("Zona", Zona || null)
-      .input("Avenida", Avenida || null)
-      .input("NumeroCasa", NumeroCasa) // obligatorio
-      .input("FotoReferencia", FotoReferencia || null)
-      .execute("sp_InsertarEmbarazadaConDireccion");
+      // 1. Verificar si ya existe el teléfono
+      const existe = await pool
+        .request()
+        .input("Telefono", Telefono)
+        .query("SELECT 1 FROM Embarazada WHERE Telefono = @Telefono");
 
-    res.status(201).json({
-      message: "✅ Embarazada y dirección registradas correctamente",
-      data: result.recordset[0],
-    });
-  } catch (err) {
-    console.error("⚠ Error al registrar embarazada:", err);
-    res.status(500).send("⚠ Error al registrar embarazada: " + err.message);
-  }
-});
+      if (existe.recordset.length > 0) {
+        return res.status(400).json({ error: "⚠ El número de teléfono ya está registrado" });
+      }
+
+      // 2. Insertar usando SP
+      const result = await getConnection()
+        .request()
+        .input("Nombre", Nombre)
+        .input("Edad", Edad)
+        .input("Telefono", Telefono)
+        .input("Calle", Calle)
+        .input("Ciudad", Ciudad)
+        .input("Departamento", Departamento)
+        .input("Zona", Zona || null)
+        .input("Avenida", Avenida || null)
+        .input("NumeroCasa", NumeroCasa)
+        .input("FotoReferencia", sql.VarBinary(sql.MAX), fotoBuffer)
+        .input("Latitud", Latitud || null)
+        .input("Longitud", Longitud || null)
+        .execute("sp_InsertarEmbarazadaConDireccion");
+
+      res.status(201).json({
+        message: "✅ Embarazada y dirección registradas correctamente",
+        data: result.recordset[0],
+      });
+    } catch (err) {
+      console.error("⚠ Error:", err);
+      res.status(500).send("⚠ Error al registrar embarazada: " + err.message);
+    }
+  });
 
 
   /* ============================================================
