@@ -94,8 +94,8 @@ app.get("/", (req, res) => {
     console.log("Cerrar sesión - cookies antes:", req.cookies);
     res.clearCookie("token", {
       httpOnly: true,
-      sameSite: "lax",
-      secure: false,
+      sameSite: "None",
+      secure: true,
       path: "/",
     });
     res.json({ message: "Sesión cerrada correctamente" });
