@@ -13,8 +13,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // La configuración de CORS
-app.use(
-  cors({ origin: (origin, callback) => {
+app.use(cors({ origin: (origin, callback) => {
       if (!origin) return callback(null, true); // permite peticiones internas
       if (
         origin.endsWith(".ngrok-free.app") ||
@@ -79,6 +78,7 @@ app.get("/", (req, res) => {
         sameSite: "None",
         secure: true,
         path: "/",
+        domain: ".vercel.app",
       });
 
 
@@ -93,10 +93,11 @@ app.get("/", (req, res) => {
   app.post("/logout", (req, res) => {
     console.log("Cerrar sesión - cookies antes:", req.cookies);
     res.clearCookie("token", {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: false,
+     httpOnly: true,
+      sameSite: "None",
+      secure: true,
       path: "/",
+      domain: ".vercel.app",
     });
     res.json({ message: "Sesión cerrada correctamente" });
   });
