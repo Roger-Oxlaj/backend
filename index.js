@@ -78,7 +78,6 @@ app.get("/", (req, res) => {
         sameSite: "None",
         secure: true,
         path: "/",
-        domain: ".vercel.app",
       });
 
 
