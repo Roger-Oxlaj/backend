@@ -433,6 +433,41 @@ app.post("/embarazadas", async (req, res) => {
     }
   });
 
+  // ACTUALIZAR SEGUIMIENTO
+  app.put("/seguimientos/:id", async (req, res) => {
+    const { id } = req.params;
+    const { ID_Embarazada, ID_Usuario, Fecha_Seguimiento, Observaciones, Signos_Alarma } = req.body;
+
+    try {
+      const result = await getConnection()
+        .request()
+        .input("ID_Seguimiento", id)
+        .input("ID_Embarazada", ID_Embarazada)
+        .input("ID_Usuario", ID_Usuario)
+        .input("Fecha_Seguimiento", Fecha_Seguimiento)
+        .input("Observaciones", Observaciones)
+        .input("Signos_Alarma", Signos_Alarma)
+        .query(`
+          UPDATE Seguimiento
+          SET ID_Embarazada = @ID_Embarazada,
+              ID_Usuario = @ID_Usuario,
+              Fecha_Seguimiento = @Fecha_Seguimiento,
+              Observaciones = @Observaciones,
+              Signos_Alarma = @Signos_Alarma
+          WHERE ID_Seguimiento = @ID_Seguimiento
+        `);
+      
+      if (result.rowsAffected[0] === 0) {
+        return res.status(404).send("Seguimiento no encontrado");
+      }
+
+      res.send("✅ Seguimiento actualizado correctamente");
+    } catch (err) {
+      res.status(500).send(err.message);
+    }
+  });
+
+
   /* ============================================================
      CRUD UBICACION
   ============================================================ */
