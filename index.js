@@ -611,6 +611,35 @@ app.post("/embarazadas", async (req, res) => {
     }
   });
 
+  app.put("/riesgos/:id", async (req, res) => {
+  const { id } = req.params;
+  const { ID_Embarazada, Fecha_Riesgo, Nivel } = req.body;
+
+  try {
+    const result = await getConnection()
+      .request()
+      .input("ID_Riesgo", id)
+      .input("ID_Embarazada", ID_Embarazada)
+      .input("Fecha_Riesgo", Fecha_Riesgo)
+      .input("Nivel", Nivel)
+      .query(`
+        UPDATE Riesgo
+        SET ID_Embarazada = @ID_Embarazada,
+            Fecha_Riesgo = @Fecha_Riesgo,
+            Nivel = @Nivel
+        WHERE ID_Riesgo = @ID_Riesgo
+      `);
+
+    if (result.rowsAffected[0] === 0)
+      return res.status(404).send("❌ Riesgo no encontrado");
+
+    res.send("✅ Riesgo actualizado correctamente");
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+
 
   /* ============================================================
      INICIAR SERVIDOR
