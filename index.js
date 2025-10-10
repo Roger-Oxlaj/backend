@@ -521,6 +521,32 @@ app.post("/embarazadas", async (req, res) => {
     }
   });
 
+  // ✅ EDITAR UBICACIÓN (PUT)
+  app.put("/ubicaciones/:id", async (req, res) => {
+    const { id } = req.params;
+    const { ID_Embarazada, ID_Direccion } = req.body;
+    try {
+      const result = await getConnection()
+        .request()
+        .input("ID_Ubicacion", id)
+        .input("ID_Embarazada", ID_Embarazada)
+        .input("ID_Direccion", ID_Direccion)
+        .query(`
+          UPDATE Ubicacion
+          SET ID_Embarazada = @ID_Embarazada,
+              ID_Direccion = @ID_Direccion
+          WHERE ID_Ubicacion = @ID_Ubicacion
+        `);
+
+      if (result.rowsAffected[0] === 0)
+        return res.status(404).send("❌ No se encontró la ubicación");
+      res.send("✅ Ubicación actualizada correctamente");
+    } catch (err) {
+      res.status(500).send(err.message);
+    }
+  });
+
+
   /* ============================================================
      CRUD RIESGO
   ============================================================ */
