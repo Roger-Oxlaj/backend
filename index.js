@@ -201,23 +201,22 @@ app.get("/", (req, res) => {
 });
 
 app.post("/direcciones", async (req, res) => {
-  const { Calle, Ciudad, Municipio, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa } = req.body;
+  const { Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa } = req.body;
 
   try {
     const result = await getConnection()
       .request()
       .input("Calle", Calle)
       .input("Ciudad", Ciudad)
-      .input("Municipio", Ciudad)
       .input("Departamento", Departamento)
       .input("Latitud", Latitud)
       .input("Longitud", Longitud)
       .input("Zona", Zona || null)
       .input("Avenida", Avenida || null)
       .input("NumeroCasa", NumeroCasa) // obligatorio
-      .query(`INSERT INTO Direccion (Calle, Ciudad, Municipio, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa)
+      .query(`INSERT INTO Direccion (Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa)
               OUTPUT INSERTED.ID_Direccion 
-              VALUES (@Calle, @Ciudad, @Municipio, @Departamento, @Latitud, @Longitud, @Zona, @Avenida, @NumeroCasa)`);
+              VALUES (@Calle, @Ciudad, @Departamento, @Latitud, @Longitud, @Zona, @Avenida, @NumeroCasa)`);
 
     res.status(201).json({ ID_Direccion: result.recordset[0].ID_Direccion });
   } catch (err) {
@@ -290,7 +289,7 @@ app.delete("/direcciones/:id", async (req, res) => {
 
   // Registrar embarazada con dirección (usa tu SP)
 app.post("/embarazadas", async (req, res) => {
-  const { Nombre, Edad, Telefono, Calle, Ciudad, Municipio, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa } = req.body;
+  const { Nombre, Edad, Telefono, Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa } = req.body;
 
   try {
     const pool = await getConnection();
@@ -313,7 +312,6 @@ app.post("/embarazadas", async (req, res) => {
       .input("Telefono", Telefono)
       .input("Calle", Calle)
       .input("Ciudad", Ciudad)
-      .input("Municipio", Municipio)
       .input("Departamento", Departamento)
       .input("Latitud", Latitud || null)
       .input("Longitud", Longitud || null)
