@@ -201,22 +201,23 @@ app.get("/", (req, res) => {
 });
 
 app.post("/direcciones", async (req, res) => {
-  const { Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa } = req.body;
+  const { Calle, Ciudad, Municipio, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa } = req.body;
 
   try {
     const result = await getConnection()
       .request()
       .input("Calle", Calle)
       .input("Ciudad", Ciudad)
+      .input("Municipio", Ciudad)
       .input("Departamento", Departamento)
       .input("Latitud", Latitud)
       .input("Longitud", Longitud)
       .input("Zona", Zona || null)
       .input("Avenida", Avenida || null)
       .input("NumeroCasa", NumeroCasa) // obligatorio
-      .query(`INSERT INTO Direccion (Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa)
+      .query(`INSERT INTO Direccion (Calle, Ciudad, Municipio, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa)
               OUTPUT INSERTED.ID_Direccion 
-              VALUES (@Calle, @Ciudad, @Departamento, @Latitud, @Longitud, @Zona, @Avenida, @NumeroCasa)`);
+              VALUES (@Calle, @Ciudad, @Municipio, @Departamento, @Latitud, @Longitud, @Zona, @Avenida, @NumeroCasa)`);
 
     res.status(201).json({ ID_Direccion: result.recordset[0].ID_Direccion });
   } catch (err) {
