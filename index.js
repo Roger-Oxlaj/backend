@@ -290,7 +290,7 @@ app.delete("/direcciones/:id", async (req, res) => {
 
   // Registrar embarazada con dirección (usa tu SP)
 app.post("/embarazadas", async (req, res) => {
-  const { Nombre, Edad, Telefono, Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa } = req.body;
+  const { Nombre, Edad, Telefono, Calle, Ciudad, Municipio, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa } = req.body;
 
   try {
     const pool = await getConnection();
@@ -313,6 +313,7 @@ app.post("/embarazadas", async (req, res) => {
       .input("Telefono", Telefono)
       .input("Calle", Calle)
       .input("Ciudad", Ciudad)
+      .input("Municipio", Municipio)
       .input("Departamento", Departamento)
       .input("Latitud", Latitud || null)
       .input("Longitud", Longitud || null)
