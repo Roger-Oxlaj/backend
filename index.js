@@ -35,30 +35,17 @@ app.get("/", (req, res) => {
   res.send("✅ Backend funcionando correctamente en ocean, te kero 🚀");
 });
   // 🔹 Verificar si hay sesión activa
-  app.get("/check-session", async (req, res) => {
+  app.get("/check-session", (req, res) => {
     console.log("Cookies en /check-session:", req.cookies);
     const token = req.cookies?.token;
-
     if (!token) {
       return res.json({ loggedIn: false });
     }
-
-    try {
-      const result = await getConnection()
-        .request()
-        .input("ID_Usuario", token)
-        .query("SELECT ID_Usuario, Nombre, Rol FROM Usuario WHERE ID_Usuario = @ID_Usuario");
-
-      if (result.recordset.length === 0) {
-        return res.json({ loggedIn: false });
-      }
-
-      const user = result.recordset[0];
-      res.json({ loggedIn: true, user });
-    } catch (err) {
-      console.error("⚠ Error en /check-session:", err.message);
-      res.status(500).json({ loggedIn: false });
-    }
+    // ✅ Si quisieras devolver info del usuario:
+    res.json({
+      loggedIn: true,
+      userId: token
+    });
   });
 
  
