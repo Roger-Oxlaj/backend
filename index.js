@@ -104,150 +104,151 @@ app.get("/", (req, res) => {
   /* ============================================================
      CRUD USUARIO
   ============================================================ */
-  app.get("/usuarios", async (req, res) => {
+    app.get("/usuarios", async (req, res) => {
+      try {
+        const result = await getConnection()
+          .request()
+          .query("SELECT * FROM Usuario");
+        res.json(result.recordset);
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    });
+
+    app.post("/usuarios", async (req, res) => {
+      const { Nombre, Contraseña, DPI, TELEFONO, Salt, Rol, CorreoElectronico } = req.body;
+      try {
+        const conn = await getConnection();
+        const existing = await conn.request()
+          .input("TELEFONO", TELEFONO)
+          .query("SELECT COUNT(*) as count FROM Usuario WHERE TELEFONO = @TELEFONO");
+        if (existing.recordset[0].count > 0) {
+          return res.status(400).send("⚠ Algún dato único ya está registrado (Nombre, Correo, DPI o Teléfono).");
+        }
+        await conn.request()
+          .input("Nombre", Nombre)
+          .input("Contraseña", Contraseña)
+          .input("DPI", DPI)
+          .input("TELEFONO", TELEFONO)
+          .input("Salt", Salt)
+          .input("Rol", Rol)
+          .input("CorreoElectronico", CorreoElectronico)
+          .query(`
+            INSERT INTO Usuario (Nombre, Contraseña, DPI, TELEFONO, Salt, Rol, CorreoElectronico)
+            VALUES (@Nombre, @Contraseña, @DPI, @TELEFONO, @Salt, @Rol, @CorreoElectronico)
+          `);
+
+        res.status(201).send("Usuario creado correctamente");
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    });
+
+
+    app.put("/usuarios/:id", async (req, res) => {
+      const { id } = req.params;
+      const { Nombre, Contraseña, DPI, TELEFONO, Salt, Rol, CorreoElectronico } = req.body; // ✅ incluir
+      try {
+        await getConnection()
+          .request()
+          .input("ID_Usuario", id)
+          .input("Nombre", Nombre)
+          .input("Contraseña", Contraseña)
+          .input("DPI", DPI)
+          .input("TELEFONO", TELEFONO)
+          .input("Salt", Salt)
+          .input("Rol", Rol)
+          .input("CorreoElectronico", CorreoElectronico)
+          .query(`
+            UPDATE Usuario
+            SET Nombre=@Nombre, Contraseña=@Contraseña, DPI=@DPI, TELEFONO=@TELEFONO, Salt=@Salt, Rol=@Rol, CorreoElectronico=@CorreoElectronico
+            WHERE ID_Usuario=@ID_Usuario
+          `);
+        res.send("Usuario actualizado correctamente");
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    });
+
+
+
+    app.delete("/usuarios/:id", async (req, res) => {
+      const { id } = req.params;
+      try {
+        await getConnection()
+          .request()
+          .input("ID_Usuario", id)
+          .query("DELETE FROM Usuario WHERE ID_Usuario = @ID_Usuario");
+
+        res.send("Usuario eliminado correctamente");
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    });
+
+    /* ============================================================
+      CRUD DIRECCION
+    ============================================================ */
+  app.get("/direcciones", async (req, res) => {
     try {
       const result = await getConnection()
         .request()
-        .query("SELECT * FROM Usuario");
+        .query("SELECT * FROM Direccion"); // Incluye Municipio automáticamente
       res.json(result.recordset);
     } catch (err) {
       res.status(500).send(err.message);
     }
   });
 
-  app.post("/usuarios", async (req, res) => {
-    const { Nombre, Contraseña, DPI, TELEFONO, Salt, Rol, CorreoElectronico } = req.body;
-    try {
-      const conn = await getConnection();
-      const existing = await conn.request()
-        .input("TELEFONO", TELEFONO)
-        .query("SELECT COUNT(*) as count FROM Usuario WHERE TELEFONO = @TELEFONO");
-      if (existing.recordset[0].count > 0) {
-        return res.status(400).send("⚠ Algún dato único ya está registrado (Nombre, Correo, DPI o Teléfono).");
-      }
-      await conn.request()
-        .input("Nombre", Nombre)
-        .input("Contraseña", Contraseña)
-        .input("DPI", DPI)
-        .input("TELEFONO", TELEFONO)
-        .input("Salt", Salt)
-        .input("Rol", Rol)
-        .input("CorreoElectronico", CorreoElectronico)
-        .query(`
-          INSERT INTO Usuario (Nombre, Contraseña, DPI, TELEFONO, Salt, Rol, CorreoElectronico)
-          VALUES (@Nombre, @Contraseña, @DPI, @TELEFONO, @Salt, @Rol, @CorreoElectronico)
-        `);
+  app.post("/direcciones", async (req, res) => {
+    const { Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa, Municipio } = req.body;
 
-      res.status(201).send("Usuario creado correctamente");
-    } catch (err) {
-      res.status(500).send(err.message);
-    }
-  });
-
-
-  app.put("/usuarios/:id", async (req, res) => {
-    const { id } = req.params;
-    const { Nombre, Contraseña, DPI, TELEFONO, Salt, Rol, CorreoElectronico } = req.body; // ✅ incluir
-    try {
-      await getConnection()
-        .request()
-        .input("ID_Usuario", id)
-        .input("Nombre", Nombre)
-        .input("Contraseña", Contraseña)
-        .input("DPI", DPI)
-        .input("TELEFONO", TELEFONO)
-        .input("Salt", Salt)
-        .input("Rol", Rol)
-        .input("CorreoElectronico", CorreoElectronico)
-        .query(`
-          UPDATE Usuario
-          SET Nombre=@Nombre, Contraseña=@Contraseña, DPI=@DPI, TELEFONO=@TELEFONO, Salt=@Salt, Rol=@Rol, CorreoElectronico=@CorreoElectronico
-          WHERE ID_Usuario=@ID_Usuario
-        `);
-      res.send("Usuario actualizado correctamente");
-    } catch (err) {
-      res.status(500).send(err.message);
-    }
-  });
-
-
-
-  app.delete("/usuarios/:id", async (req, res) => {
-    const { id } = req.params;
-    try {
-      await getConnection()
-        .request()
-        .input("ID_Usuario", id)
-        .query("DELETE FROM Usuario WHERE ID_Usuario = @ID_Usuario");
-
-      res.send("Usuario eliminado correctamente");
-    } catch (err) {
-      res.status(500).send(err.message);
-    }
-  });
-
-  /* ============================================================
-     CRUD DIRECCION
-  ============================================================ */
-  app.get("/direcciones", async (req, res) => {
-  try {
-    const result = await getConnection()
-      .request()
-      .query("SELECT * FROM Direccion"); // Ya devuelve los nuevos campos
-    res.json(result.recordset);
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
-
-app.post("/direcciones", async (req, res) => {
-  const { Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa } = req.body;
-
-  try {
-    const result = await getConnection()
-      .request()
-      .input("Calle", Calle)
-      .input("Ciudad", Ciudad)
-      .input("Departamento", Departamento)
-      .input("Latitud", Latitud)
-      .input("Longitud", Longitud)
-      .input("Zona", Zona || null)
-      .input("Avenida", Avenida || null)
-      .input("NumeroCasa", NumeroCasa) // obligatorio
-      .query(`INSERT INTO Direccion (Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa)
-              OUTPUT INSERTED.ID_Direccion 
-              VALUES (@Calle, @Ciudad, @Departamento, @Latitud, @Longitud, @Zona, @Avenida, @NumeroCasa)`);
-
-    res.status(201).json({ ID_Direccion: result.recordset[0].ID_Direccion });
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
-
-// Eliminar dirección
-app.delete("/direcciones/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    await getConnection()
-      .request()
-      .input("ID_Direccion", id)
-      .query("DELETE FROM Direccion WHERE ID_Direccion = @ID_Direccion");
-
-    res.sendStatus(204); // No Content
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
-
-
-  /* ============================================================
-     CRUD EMBARAZADA
-  ============================================================ */
-  app.get("/embarazadas", async (req, res) => {
     try {
       const result = await getConnection()
         .request()
-        .query("SELECT * FROM Embarazada");
+        .input("Calle", Calle)
+        .input("Ciudad", Ciudad)
+        .input("Departamento", Departamento)
+        .input("Latitud", Latitud)
+        .input("Longitud", Longitud)
+        .input("Zona", Zona || null)
+        .input("Avenida", Avenida || null)
+        .input("NumeroCasa", NumeroCasa)
+        .input("Municipio", Municipio)
+        .query(`
+          INSERT INTO Direccion (Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa, Municipio)
+          OUTPUT INSERTED.ID_Direccion 
+          VALUES (@Calle, @Ciudad, @Departamento, @Latitud, @Longitud, @Zona, @Avenida, @NumeroCasa, @Municipio)
+        `);
+
+      res.status(201).json({ ID_Direccion: result.recordset[0].ID_Direccion });
+    } catch (err) {
+      res.status(500).send(err.message);
+    }
+  });
+
+  // Eliminar dirección
+  app.delete("/direcciones/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+      await getConnection()
+        .request()
+        .input("ID_Direccion", id)
+        .query("DELETE FROM Direccion WHERE ID_Direccion = @ID_Direccion");
+
+      res.sendStatus(204);
+    } catch (err) {
+      res.status(500).send(err.message);
+    }
+  });
+
+
+  /* ============================================================
+      CRUD EMBARAZADA
+    ============================================================ */
+  app.get("/embarazadas", async (req, res) => {
+    try {
+      const result = await getConnection().request().query("SELECT * FROM Embarazada");
       res.json(result.recordset);
     } catch (err) {
       res.status(500).send(err.message);
@@ -257,78 +258,73 @@ app.delete("/direcciones/:id", async (req, res) => {
   app.get("/embarazadas-con-direccion", async (req, res) => {
     try {
       const result = await getConnection().request().query(`
-      SELECT e.ID_Embarazada, e.Nombre, e.Edad, d.Latitud, d.Longitud, r.Nivel
-      FROM Embarazada e
-      INNER JOIN Direccion d ON e.ID_Direccion = d.ID_Direccion
-      INNER JOIN Riesgo r ON e.ID_Embarazada = r.ID_Embarazada
-    `);
+        SELECT e.ID_Embarazada, e.Nombre, e.Edad, d.Latitud, d.Longitud, d.Municipio, r.Nivel
+        FROM Embarazada e
+        INNER JOIN Direccion d ON e.ID_Direccion = d.ID_Direccion
+        INNER JOIN Riesgo r ON e.ID_Embarazada = r.ID_Embarazada
+      `);
       res.json(result.recordset);
     } catch (err) {
       res.status(500).send("⚠ Error: " + err.message);
     }
   });
 
-  // Obtener una embarazada por ID
-  app.get("/embarazadas/:id", async (req, res) => {
-    const { id } = req.params;
-    try {
-      const result = await getConnection()
-        .request()
-        .input("ID", id)
-        .query("SELECT * FROM Embarazada WHERE ID_Embarazada = @ID");
+  // Registrar embarazada con dirección
+  app.post("/embarazadas", async (req, res) => {
+    const {
+      Nombre,
+      Edad,
+      Telefono,
+      Calle,
+      Ciudad,
+      Departamento,
+      Latitud,
+      Longitud,
+      Zona,
+      Avenida,
+      NumeroCasa,
+      Municipio
+    } = req.body;
 
-      if (result.recordset.length === 0) {
-        return res.status(404).send("⚠ Embarazada no encontrada");
+    try {
+      const pool = await getConnection();
+
+      // Verificar teléfono duplicado
+      const existe = await pool
+        .request()
+        .input("Telefono", Telefono)
+        .query("SELECT 1 FROM Embarazada WHERE Telefono = @Telefono");
+
+      if (existe.recordset.length > 0) {
+        return res.status(400).json({ error: "⚠ El número de teléfono ya está registrado" });
       }
 
-      res.json(result.recordset[0]);
+      // Ejecutar SP actualizado (debes agregar @Municipio en SQL)
+      const result = await pool
+        .request()
+        .input("Nombre", Nombre)
+        .input("Edad", Edad)
+        .input("Telefono", Telefono)
+        .input("Calle", Calle)
+        .input("Ciudad", Ciudad)
+        .input("Departamento", Departamento)
+        .input("Latitud", Latitud || null)
+        .input("Longitud", Longitud || null)
+        .input("Zona", Zona || null)
+        .input("Avenida", Avenida || null)
+        .input("NumeroCasa", NumeroCasa)
+        .input("Municipio", Municipio)
+        .execute("sp_InsertarEmbarazadaConDireccion");
+
+      res.status(201).json({
+        message: "✅ Embarazada y dirección registradas correctamente",
+        data: result.recordset[0],
+      });
     } catch (err) {
-      res.status(500).send("⚠ Error: " + err.message);
+      console.error("⚠ Error al registrar embarazada:", err);
+      res.status(500).send("⚠ Error al registrar embarazada: " + err.message);
     }
   });
-
-  // Registrar embarazada con dirección (usa tu SP)
-app.post("/embarazadas", async (req, res) => {
-  const { Nombre, Edad, Telefono, Calle, Ciudad, Departamento, Latitud, Longitud, Zona, Avenida, NumeroCasa } = req.body;
-
-  try {
-    const pool = await getConnection();
-
-    // 1. Verificar si ya existe el teléfono
-    const existe = await pool
-      .request()
-      .input("Telefono", Telefono)
-      .query("SELECT 1 FROM Embarazada WHERE Telefono = @Telefono");
-
-    if (existe.recordset.length > 0) {
-      return res.status(400).json({ error: "⚠ El número de teléfono ya está registrado" });
-    }
-
-    // 2. Insertar usando SP
-    const result = await pool
-      .request()
-      .input("Nombre", Nombre)
-      .input("Edad", Edad)
-      .input("Telefono", Telefono)
-      .input("Calle", Calle)
-      .input("Ciudad", Ciudad)
-      .input("Departamento", Departamento)
-      .input("Latitud", Latitud || null)
-      .input("Longitud", Longitud || null)
-      .input("Zona", Zona || null)
-      .input("Avenida", Avenida || null)
-      .input("NumeroCasa", NumeroCasa) // obligatorio
-      .execute("sp_InsertarEmbarazadaConDireccion");
-
-    res.status(201).json({
-      message: "✅ Embarazada y dirección registradas correctamente",
-      data: result.recordset[0],
-    });
-  } catch (err) {
-    console.error("⚠ Error al registrar embarazada:", err);
-    res.status(500).send("⚠ Error al registrar embarazada: " + err.message);
-  }
-});
 
 
   /* ============================================================
